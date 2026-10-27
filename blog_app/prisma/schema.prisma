@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum Role{
+user
+admin
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(150) // email VARCHAR NOT NULL UNIQUE
+  name      String?  @db.VarChar(150) // name VARCHAR NOT NULL
+  password  String   @map("password_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+  blogs     Blog[] // virtual field
+  role      Role     @default(user)
+
+  @@map("users")
+}
+model Blog {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(100)
+  content   String
+  authorId  Int      @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("blogs")
+}
+
+// model Post {
+//   id        Int      @id @default(autoincrement())
+//   title     String   @db.VarChar(100)
+//   content   String
+//   authorId  Int      @map("author_id")
+//   createdAt DateTime @default(now()) @map("created_at")
+//   isDeleted Boolean  @default(false) @map("is_deleted")
+//
+//   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+//   comments Comment[]
+//
+//   @@map("posts")
+// }
+//
+// model Comment {
+//   id Int @id @default(autoincrement())
+//
+//   content   String
+//   userId    Int      @map("author_id")
+//   createdAt DateTime @default(now()) @map("created_at")
+//   isDeleted Boolean  @default(false) @map("is_deleted")
+//   postId    Int      @map("post_id")
+//   post      Post     @relation(fields: [postId], references: [id])
+//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@map("comments")
+// }
+
+// knex -> write migration
+// user.find(id,include:blogs)
+// virtual field in model not exist table
+// user.password -> users.passwrd_hash
